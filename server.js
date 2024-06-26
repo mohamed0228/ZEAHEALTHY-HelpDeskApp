@@ -109,16 +109,15 @@
 // app.listen(port, () => {
 //   console.log(`Server is running on http://localhost:${port}`);
 // });
+
 const express = require("express");
 const { Sequelize, DataTypes } = require("sequelize");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const dotenv = require("dotenv");
-
-dotenv.config(); // Load environment variables from .env file
-
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5000; // Use PORT from environment variables or default to 5000
+
+require("dotenv").config();
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -128,7 +127,8 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   dialectOptions: {
     ssl: {
-      rejectUnauthorized: false, // For self-signed certificates
+      require: true,
+      rejectUnauthorized: false, // This is necessary for connecting to Supabase
     },
   },
 });
@@ -169,11 +169,7 @@ sequelize
     console.error("Unable to sync models:", error);
   });
 
-// Middleware
-app.use(bodyParser.json());
-
 // Routes
-
 // Create a ticket
 app.post("/api/tickets", async (req, res) => {
   const { name, email, description } = req.body;
@@ -183,7 +179,7 @@ app.post("/api/tickets", async (req, res) => {
       name,
       email,
       description,
-      status: "new", // Use lowercase for enum values
+      status: "new",
     });
     res.status(201).json(ticket);
   } catch (error) {
